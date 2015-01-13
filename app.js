@@ -22,7 +22,7 @@ app.get('/', function (req, res) {
         res.end(data);
         });
 });
-//console.log('connect?');
+console.log('connect?');
 io.on('connection', function(socket){
   // console.log('user login');
    console.log('a user connected');
