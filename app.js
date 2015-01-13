@@ -22,6 +22,7 @@ app.get('/', function (req, res) {
         res.end(data);
         });
 });
+//code code add add
 console.log('connect?');
 io.on('connection', function(socket){
   // console.log('user login');
