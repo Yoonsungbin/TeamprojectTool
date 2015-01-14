@@ -22,26 +22,11 @@ app.get('/', function (req, res) {
         res.end(data);
         });
 });
-//code code add add
-console.log('connect?');
-io.on('connection', function(socket){
-  // console.log('user login');
-   console.log('a user connected');
-   socket.broadcast.emit('hi');
-  // console.log('chat message start');
-   socket.on('getmessage', function(msg){
- //  console.log('message: ' + msg);
-  io.emit('putmessage', msg);
-  });
-  socket.on('disconnect', function(){
-    console.log('user disconnected');
-  });
-});
-
 
 app.get('/main', function (req, res) {
         fs.readFile('main.html', function (error, data){
         res.writeHead(200, { 'Content-Type':'text/html' });
+	console.log(req.cookies);
         res.end(data);
         });
 });
@@ -60,6 +45,7 @@ app.get('/main', function (req, res) {
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
+
 // uncomment after placing your favicon in /public
 //app.use(favicon(__dirname + '/public/favicon.ico'));
 app.use(logger('dev'));
@@ -72,6 +58,26 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(function(req,res,next){
     req.db = db;
     next();
+});
+
+
+//code code add add
+console.log('connect?');
+io.on('connection', function(socket){
+
+
+  // console.log('user login');
+   console.log('app user connected');
+   //socket.broadcast.emit('hi');
+  // console.log('chat message start');
+   socket.on('getmessage', function(msg){
+   console.log('message: ' + msg);
+
+  io.emit('putmessage', msg);
+  });
+  socket.on('disconnect', function(){
+    console.log('user disconnected');
+  });
 });
 
 

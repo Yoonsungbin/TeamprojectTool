@@ -119,13 +119,20 @@
     </form>
 </div>
 <script>
+ var set = document.cookie;
+var temp = set.split("=");
+var name = temp[1];
+
   var socket = io();
   $('form').submit(function(){
-    socket.emit('getmessage', $('#m').val());
+var tname = name+ ' : ' +$('#m').val();
+//alert(tname);
+    socket.emit('getmessage', tname);
     $('#m').val('');
     return false;
   });
 socket.on('putmessage', function(msg){
+//alert(name);
 // alert('message 받음');
     $('#messages').append($('<li>').text(msg));
 //scroll 아래로 내리기
