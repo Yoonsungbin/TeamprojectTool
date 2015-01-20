@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <script src="http://code.jquery.com/jquery-latest.js"></script>
+        <script>
+	var Project_Name = new Array();
+	var count;
+		$.getJSON('/projectadd', function (data) {
+		 count = data.length;
+		for(var j = 0; j < count; j++ ) {	
+		Project_Name[j] = data[j].Project_Name;
+		}
+		prepare();
+		});
+	function prepare(){
+            $(document).ready(function(){
+                // 데이터베이스에서 현재 사용자의 이름을 읽고 출력합니다.
+ var cookie = document.cookie;
+alert(cookie);
+cookie = cookie.split(';');
+ var cook1 = cookie[0].split('=');
+ var cook2 = cookie[1].split('=');
+ var cook3 = cookie[2].split('=');
+var User_Email = cook1[1];
+var User_Name = cook2[1];
+var User_Pass = cook3[1];                
+var name = User_Name;
+                $('#user').text(name);
+                // 데이터베이스에서 참여하고있는 프로젝트 목록을 읽어옵니다.
+    var list = [];
+		for(var i =0;i<count;i++){
+		list.push({'title' :Project_Name[i],img: 'http://placehold.it/150x150'});
+		}
+                var text = "";
+                $.each(list, function(index, item){
+                    text += "<br><a class='prj' href='./main'><img src='" + item.img +"'><br>" + item.title + "<br></a>"; 
+                });
+     
+                text += "<br><a class='prj' href='add_prj.html'><img src='http://placehold.it/150x150'><br>프로젝트 추가<br></a>";
+                $('#prj_list').append(text);        // prj_list에 text를 덧붙입니다.
+            });
+}
+        </script>
+
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+        <title>select_project</title>
+        <meta name="description" content="">
+        <meta name="author" content="PC-164">
+
+        <meta name="viewport" content="width=device-width; initial-scale=1.0">
+
+        <!-- Replace favicon.ico & apple-touch-icon.png in the root of your domain and delete these references -->
+        <link rel="shortcut icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        <style type = "text/css">
+            body { 
+                color: #404040;
+                font-family: '함초롬돋움';
+                font-size: 1em;
+                line-height: 1.2em;
+                text-align: center;
+            }
+        </style>
+    </head>
+
+    <body>
+        <header>
+            <h1>프로젝트 선택</h1>
+            <ins id="user"></ins>님이 참여중인 프로젝트
+        </header>
+        <div id="prj_list">
+        </div>
+    </body>
+</html>
+
