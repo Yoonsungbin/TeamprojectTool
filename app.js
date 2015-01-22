@@ -4,6 +4,7 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var session = require('express-session');
 var routes = require('./routes/index');
 var users = require('./routes/users');
 var app = express();
@@ -28,6 +29,7 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(session({secret:"mango"}));
 //file path setting
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(multer({ dest: './public/images/',rename: function(fieldname,filename){
@@ -49,9 +51,14 @@ app.use('/users', users);
 //});
 
 app.get('/main', function (req, res) {
+var User_Email;
+var User_Name;
   fs.readFile('main.html','utf-8', function (error, data){
     res.writeHead(200, { 'Content-Type':'text/html' });
-    console.log(req.cookies);
+	console.log('main start : ');
+	console.log(req.session.User_Email);
+	console.log(req.session.User_Name);
+	console.log(req.session.User_Pass);
     res.end(data,'utf8');
   });
 });
@@ -85,8 +92,8 @@ console.log('message: ' + msg);
     console.log('user disconnected');
   });
 });
-//io.on('connect',function(socket){
-//});
+io.on('connect',function(socket){
+});
 
 
 // catch 404 and forward to error handler

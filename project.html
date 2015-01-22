@@ -6,25 +6,27 @@
         <script>
 	var Project_Name = new Array();
 	var count;
+	var User_Name;
 		$.getJSON('/projectadd', function (data) {
 		 count = data.length;
+		User_Name = data.User_Name;
 		for(var j = 0; j < count; j++ ) {	
-		Project_Name[j] = data[j].Project_Name;
+	  		Project_Name[j] = data.Project_Name[j];
 		}
 		prepare();
 		});
 	function prepare(){
             $(document).ready(function(){
                 // 데이터베이스에서 현재 사용자의 이름을 읽고 출력합니다.
- var cookie = document.cookie;
-alert(cookie);
-cookie = cookie.split(';');
- var cook1 = cookie[0].split('=');
- var cook2 = cookie[1].split('=');
- var cook3 = cookie[2].split('=');
-var User_Email = cook1[1];
-var User_Name = cook2[1];
-var User_Pass = cook3[1];                
+ //var cookie = document.cookie;
+//alert(cookie);
+//cookie = cookie.split(';');
+// var cook1 = cookie[0].split('=');
+// var cook2 = cookie[0].split('=');
+// var cook3 = cookie[1].split('=');
+//var User_Email = cook1[1];
+//var User_Name = cook2[1];
+//var User_Pass = cook3[1];                
 var name = User_Name;
                 $('#user').text(name);
                 // 데이터베이스에서 참여하고있는 프로젝트 목록을 읽어옵니다.
