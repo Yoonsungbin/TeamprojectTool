@@ -124,6 +124,8 @@ $.getJSON('/mainadd', function (data) {
   alert(User_Name);
 });
   var socket = io();
+//var room = Project_Id;
+//socket.emit('join', room);
   $('form').submit(function(){
 var tname = User_Name+ ' : ' +$('#m').val();
 //alert(tname);

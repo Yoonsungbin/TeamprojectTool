@@ -50,25 +50,6 @@ app.use('/users', users);
 //  });
 //});
 
-app.get('/main', function (req, res) {
-var User_Email;
-var User_Name;
-  fs.readFile('main.html','utf-8', function (error, data){
-    res.writeHead(200, { 'Content-Type':'text/html' });
-	console.log('main start : ');
-	console.log(req.session.User_Email);
-	console.log(req.session.User_Name);
-	console.log(req.session.User_Pass);
-    res.end(data,'utf8');
-  });
-});
-app.get('/upload',function (req, res) {
-  fs.readFile('upload.html','utf-8', function (error ,data) {
-    res.writeHead(200, { 'Content-Type':'text/html'});
-    res.end(data);
-  });
-});
-
 //app.get('/project',function (req, res) {
 // fs.readFile('project.html', function (error ,data) {
 //    res.writeHead(200, { 'Content-Type':'text/html'});
@@ -77,25 +58,47 @@ app.get('/upload',function (req, res) {
 //});
 
 // socket network setting
+//socket room create
+function Sockets(){
+    this.sockets={};
+};
+Sockets.prototype.set = function(id, data) {
+    this.sockets[id] = data;
+};
+Sockets.prototype.get = function(id, callback) {
+    if (this.sockets[id] !== undefined) {
+        callback(true,this.sockets[id]);
+    } else {
+        callback(false,this.sockets[id]);
+    }
+};
+
+// socket network setting
 console.log('connect?');
 io.on('connection', function(socket){
-  // console.log('user login');
-  console.log('app user connected');
-   //socket.broadcast.emit('hi');
-  // console.log('chat message start');
-  socket.on('getmessage', function(msg){
-console.log('message: ' + msg);
+var sockets = new Sockets();
+    // console.log('user login');
+    console.log('app user connected');
+    //socket.broadcast.emit('hi');
+    // console.log('chat message start');
+  socket.on('join', function(data) {
+	console.log('user join room');
+	socket.join(data);
+	sockets.set('room',data);
+});
+  socket.on('getmessage',function(msg) {
+	sockets.get('room',function(err,room){
+	console.log('message' + msg);
+	io.sockets.in(room).emit('putmessage',msg);
+});
+      });
+	socket.on('disconnect',function(){
+ 	console.log('usr disconnected');
 
-   io.emit('putmessage', msg);
- });
-  socket.on('disconnect', function(){
-    console.log('user disconnected');
-  });
+    });
 });
 io.on('connect',function(socket){
 });
-
-
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error('Not Found');
