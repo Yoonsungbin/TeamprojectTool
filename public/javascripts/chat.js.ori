@@ -1,0 +1,38 @@
+$.getJSON('/getProjectId', function (data) {
+      var User_Name = data.User_Name;
+      var Project_Id = data.Project_Id;
+      var socket = io();
+      var room = Project_Id;
+      socket.emit('join',{
+	User_Name:User_Name,
+	Project_Id:Project_Id
+	});
+      socket.emit('getgreet', User_Name +'님이 접속하셨습니다.');
+ socket.on('connect', function() {
+     $('form').submit(function(){
+         var message =$('#m').val();
+         socket.emit('getmessage', {message: message,
+         User_Name:User_Name
+        });
+         $('#m').val('');
+         return false;
+      });
+//서버로부터받는것
+      socket.on('putgreet', function(msg){
+         $('#messages').append($('<h4 align:center>').text(msg));
+      });
+      socket.on('putmessage', function(msg){
+         if(msg.User_Name == User_Name){
+            $('#messages').append($('<h4 align="right">').text(msg.message));
+         }
+         else
+         {
+            $('#messages').append($('<h4 align="left">').text(msg.User_Name));
+            $('#messages').append($('<h4 align="left">').text(msg.message));
+         }
+//scroll 아래로 내리기
+         var el = document.getElementById('messages');
+         el.scrollIntoView(false);
+      });
+   });
+});

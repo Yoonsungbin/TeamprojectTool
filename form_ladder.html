@@ -89,25 +89,39 @@
 </div>
 <script>
 $.getJSON('/getProjectId', function (data) {
-var User_Name = data.User_Name;
-var Project_Id = data.Project_Id;
-  var socket = io();
-var room = Project_Id;
-//alert(room);
-socket.emit('join', room);
- $('form').submit(function(){
-var tname = User_Name+ ' : ' +$('#m').val();
-    socket.emit('getmessage', tname);
-    $('#m').val('');
-    return false;
-  });
-socket.on('putmessage', function(msg){
-//alert(name);
-    $('#messages').append($('<li>').text(msg));
+      var User_Name = data.User_Name;
+      var Project_Id = data.Project_Id;
+      var socket = io();
+      var room = Project_Id;
+      socket.emit('join',{room:room,name:User_Name});
+      socket.emit('getgreet', User_Name +'님이 접속하셨습니다.');
+ socket.on('connect', function() {
+     $('form').submit(function(){
+         var message =$('#m').val();
+         socket.emit('getmessage', {message: message,
+         name:User_Name
+        });
+         $('#m').val('');
+         return false;
+      });
+//서버로부터받는것
+      socket.on('putgreet', function(msg){
+         $('#messages').append($('<h4 align:center>').text(msg));
+      });
+      socket.on('putmessage', function(msg){
+         if(msg.name == User_Name){
+            $('#messages').append($('<h4 align="right">').text(msg.message));
+         }
+         else
+         {
+            $('#messages').append($('<h4 align="left">').text(msg.name));
+            $('#messages').append($('<h4 align="left">').text(msg.message));
+         }
 //scroll 아래로 내리기
-    var el = document.getElementById('messages');
-    el.scrollIntoView(false);
-});
+         var el = document.getElementById('messages');
+         el.scrollIntoView(false);
+      });
+   });
 });
 </script>
         </body>

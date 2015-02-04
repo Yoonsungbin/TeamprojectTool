@@ -21,6 +21,7 @@
                 <!-- chat -->
                 <script src="/socket.io/socket.io.js"></script>
                 <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+      <script src="../javascripts/chat.js"></script>
         </head>
 
         <body>
@@ -79,29 +80,6 @@
             <input id="sendbtn" type="submit" value="Send" />
          </form>
 </div>
-<script>
-$.getJSON('/getProjectId', function (data) {
-var User_Name = data.User_Name;
-var Project_Id = data.Project_Id;
-  var socket = io();
-var room = Project_Id;
-//alert(room);
-socket.emit('join', room);
- $('form').submit(function(){
-var tname = User_Name+ ' : ' +$('#m').val();
-    socket.emit('getmessage', tname);
-    $('#m').val('');
-    return false;
-  });
-socket.on('putmessage', function(msg){
-//alert(name);
-    $('#messages').append($('<li>').text(msg));
-//scroll 아래로 내리기
-    var el = document.getElementById('messages');
-    el.scrollIntoView(false);
-});
-});
-</script>
         </body>
 </html>
 

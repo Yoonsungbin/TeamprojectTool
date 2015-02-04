@@ -4,7 +4,8 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-var session = require('express-session');
+var session = require('express-session'),
+	RedisStore = require('connect-redis')(session);
 var routes = require('./routes/index');
 var users = require('./routes/users');
 var app = express();
@@ -16,6 +17,7 @@ var io = require('socket.io')(http);
 var mongo = require('mongodb');
 var monk = require('monk');
 var db = monk('localhost:27017/mango');
+var ObjectID = require('mongodb').ObjectID;
 //image
 var multer  = require('multer');
 
@@ -28,8 +30,22 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+//app.use(cookieParser());
+//app.use(session({secret:"mango"}));
 app.use(cookieParser());
-app.use(session({secret:"mango"}));
+app.use(session({
+  key:'sid', // 세션키
+  secret: 'secret', // 비밀키
+  cookie: {
+  }
+}));
+//app.use(session({
+//  store: new RedisStore(/*redis config: host, port 등*/), // 세션 저장소를 레디스 서버로 설정
+// key: 'sid', // 세션키
+//  secret: 'secret' // 비밀키
+  
+  /* 이하 express.session 코드와 동일 */
+//}));
 //file path setting
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(multer({ dest: './public/images/',rename: function(fieldname,filename){
@@ -43,25 +59,12 @@ app.use(function(req,res,next){
 
 app.use('/', routes);
 app.use('/users', users);
-//app.get('/', function (req, res) {
-//  fs.readFile('index.html', function (error, data){
-//    res.writeHead(200, { 'Content-Type':'text/html' });
-//    res.end(data);
-//  });
-//});
 
-//app.get('/project',function (req, res) {
-// fs.readFile('project.html', function (error ,data) {
-//    res.writeHead(200, { 'Content-Type':'text/html'});
-//    res.end(data);
-//  });
-//});
 
-// socket network setting
-//socket room create
 function Sockets(){
     this.sockets={};
 };
+
 Sockets.prototype.set = function(id, data) {
     this.sockets[id] = data;
 };
@@ -72,33 +75,108 @@ Sockets.prototype.get = function(id, callback) {
         callback(false,this.sockets[id]);
     }
 };
-
 // socket network setting
 console.log('connect?');
-io.on('connection', function(socket){
-var sockets = new Sockets();
+io.on('connection', function(socket) {
+    var Project_Member = db.get('Project_Member');
+    var Project_Message = db.get('Project_Message');
+    var sockets = new Sockets();
     // console.log('user login');
     console.log('app user connected');
     //socket.broadcast.emit('hi');
     // console.log('chat message start');
-  socket.on('join', function(data) {
-	console.log('user join room');
-	socket.join(data);
-	sockets.set('room',data);
-});
-  socket.on('getmessage',function(msg) {
-	sockets.get('room',function(err,room){
-	console.log('message' + msg);
-	io.sockets.in(room).emit('putmessage',msg);
-});
-      });
-	socket.on('disconnect',function(){
- 	console.log('usr disconnected');
+    var User_Name = '';
+   
+
+   socket.on('join', function (data) {
+        var objectId = new ObjectID(data.Project_Id);
+        User_Name = data.User_Name;
+        console.log('user join room');
+        console.log(data.Project_Id);
+        Project_Member.update({"Project_Id": objectId, "Member":User_Name}, {$set: {"Access": 'true'}});
+        // 접속 유저 정보 보이기
+        socket.join(objectId);
+        sockets.set('room', objectId);
+
+        sockets.get('room', function (err, room) {
+            Project_Member.find({"Project_Id": objectId, "Access": 'true'}, function (err, member) {
+                //     console.log(data[0].Member);
+		console.log(' 룸에 들어 갔습니다');
+	//	console.log(member);
+                io.sockets.in(room).emit('Connect_Member', member);
+	//	io.sockets.in(room).emit('abc',member);
+		console.log(' connect_Member로 보냇음');
+            });
+
+            Project_Member.find({"Project_Id": objectId, "Access": 'false'}, function (err, member) {
+                //     console.log(data[0].Member);	
+		console.log('나간멤버 false');
+		console.log('접속 안한 멤버');
+	//	console.log(member);
+                io.sockets.in(room).emit('Disconnect_Member', member);
+		console.log( 'Disconnect_Member 로 보냇음');
+            });
+
+	Project_Message.find({"Project_Id": objectId}, function(err, data){
+                if(err){
+                    console.log('이전메시지 출력실패');
+                }
+                else
+                {
+                    for(var i = 0; i<data.length; i++){
+          //              console.log(data[i].Chat.Member);
+          //              console.log(data[i].Chat.Message);
+                        io.sockets.in(room).emit('premessage',{Member:data[i].Chat.Member, message:data[i].Chat.Message,Time:data[i].Chat.Time});
+                    }
+                    console.log('이전 메시지 출력 성공');
+                }
+            });
+
+
+        });
+
+        console.log('join success');
 
     });
+    socket.on('getgreet', function (data) {
+        sockets.get('room', function (err, room) {
+            io.sockets.in(room).emit('putgreet', data);
+        });
+    });
+    socket.on('getmessage', function (msg) {
+        sockets.get('room', function (err, room) {
+	       Project_Message.insert({"Project_Id":room, "Chat": {"Member":msg.User_Name, "Message":msg.message,"Time":msg.Time}}, function(err, data){
+                if(err){
+                    conole.log('메시지 저장 에러');
+                }
+                else
+                {
+                    console.log('메시지저장완료');
+                }
+            });
+            io.sockets.in(room).emit('putmessage', msg);
+        });
+    });
+
+    socket.on('disconnect', function () {
+		console.log('disconnect 유저입니다');
+        sockets.get('room', function (err, room) {
+            Project_Member.update({"Project_Id": room, "Member":User_Name}, {$set: {"Access": 'false'}});
+            Project_Member.find({"Project_Id": room, "Access": 'true'}, function (err, member) {
+//		console.log(member);
+                io.sockets.in(room).emit('Connect_Member', member);
+                console.log('Connect_Member멤버보내기완료');
+            });
+
+            Project_Member.find({"Project_Id": room, "Access": 'false'}, function (err, member) {
+                io.sockets.in(room).emit('Disconnect_Member', member);
+                console.log('Disconnect_Member멤버보내기완료');
+            });
+
+        });
+    });
 });
-io.on('connect',function(socket){
-});
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error('Not Found');
@@ -128,6 +206,12 @@ app.use(function(err, req, res, next) {
     error: {}
   });
 });
+//서버가 죽지않게 예외처리 잡아주는 부분
+//process.on('uncaughtException', function (err) {
+// console.log('Caught exception: ' + err);
+// console.log('에러가 발생했어요');
+//});
+
 //server activite
 http.listen(8080,function() {
   console.log('server 8080');
