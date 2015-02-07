@@ -1,4 +1,7 @@
 $(document).ready(function() {            
+
+
+
             $('#toggle').click(function(){
                var state = $('#toggle').attr('name');
                //alert(state == "login" );
@@ -23,3 +26,4 @@ $(document).ready(function() {
                }
             });
          });
+

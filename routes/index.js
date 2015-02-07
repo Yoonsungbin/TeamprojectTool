@@ -1,8 +1,9 @@
 var express = require('express');
 var router = express.Router();
-var io = require('socket.io');
+//var io = require('socket.io');
 var fs = require('fs');
 var Time = require('date-utils');
+var ObjectID = require('mongodb').ObjectID;
 /* GET home page. */
 router.get('/', function (req, res) {
   fs.readFile('index.html', function (error, data){
@@ -22,6 +23,71 @@ router.get('/Task', function (req, res) {
     res.end(data,'utf8');
   });
 });
+router.post('/TaskAdd',function (req,res) {
+   var db = req.db;
+   var Task_Name = req.body.Task_Name;
+   var Task_Dday = req.body.Task_Dday;
+   var Task_Memo = req.body.Task_Memo;
+   var Project_Work = db.get('Project_Work');
+console.log('22222');
+	console.log(Task_Dday);
+Project_Work.insert({"Project_Id":ObjectID(req.session.Project_Id),"Work_Name":Task_Name,"Work_Dday":Task_Dday,"Work_Memo":Task_Memo,
+   "Work_Finish":'false',"Work_Top":'195px',"Work_Left":'440px',"Work_Person" :{"User_Name":req.session.User_Name,"User_Email":req.session.User_Email}} ,function(err,data){
+      if(data  == null){
+        console.log('업무삽입실패')
+      } else {
+         console.log('업무삽입되었음');
+	res.redirect("Task");
+         }
+      });
+});
+router.get('/TaskAppend',function(req,res){
+   var db = req.db;
+   var Project_Work = db.get('Project_Work');
+console.log('TaskInit 입니다');
+  // Project_Work.find({"Project_Id":ObjectID(req.session.Project_Id)} ,function(err,data){
+   Project_Work.find({"Work_Person.User_Name":"성빈"} ,function(err,data){
+      if(data  == null){
+         console.log('데이터없음');
+      }
+      else {
+//	console.log(data);
+var Work_Name = new Array();
+   var Work_Dday = new Array();
+   var Work_Memo = new Array();
+   var Work_Finish = new Array();
+   var Work_Person = new Array();
+   var Work_Top = new Array();
+   var Work_Left = new Array(); 
+
+	});
+for(var i =0 ; i < data.length ; i ++){
+    Work_Name[i] = data[i].Work_Name;	
+    Work_Dday[i] = data[i].Work_Dday;
+    Work_Memo[i] = data[i].Work_Memo;
+    Work_Finish[i] = data[i].Work_Finish;
+    Work_Person[i] = data[i].Work_Person;
+    Work_Top[i] = data[i].Work_Top;
+    Work_Left[i] = data[i].Work_Left;
+
+}
+//         console.log('데이터있음');
+//	console.log(data);
+         res.send({
+	    length: data.length,
+            Work_Name:Work_Name,
+            Work_Dday:Work_Dday,
+            Work_Memo:Work_Memo,
+            Work_Finish:Work_Finish,
+            Work_Person:Work_Person,
+	    Work_Top:Work_Top,
+	    Work_Left:Work_Left
+         });
+      }
+
+   });
+});
+
 router.get('/form_memo', function (req, res) {
   fs.readFile('form_memo.html','utf-8', function (error, data){
     res.writeHead(200, { 'Content-Type':'text/html' });
@@ -139,29 +205,29 @@ router.post('/projectout',function (req,res) {
 	var db = req.db;
 	var User_Name = req.session.User_Name;
 	var User_Email = req.session.User_Email;
-	var Project_Index = req.body.Project_Index;
 	var User = db.get('User');
+console.log('자유시간');
+console.log(req.body.Project_Id);
 	User.findOne({"User_Name":User_Name,"User_Email":User_Email} , function (err,data) {
 	if( data == null ) {
 		console.log('일치하는 이름이 없습니다 ' );
 	} else {
-		//console.log(data);
+		console.log(data);
 		var Project_Member = db.get('Project_Member');
-		Project_Member.find({"User_Id":data._id} ,function (err , member) {
+		Project_Member.findOne({"Project_Id":ObjectID(req.body.Project_Id),"User_Id":data._id} ,function (err , member) {
 		if( member == null ) {
 			console.log('일치하는 회원의 프로젝트가 없습니다' );
 		} else {
 			console.log(member);
-			if( member[Project_Index].Member_Position == 'captin') {
+			if( member.Member_Position == 'captin') {
 				console.log('지울데이터');
-				console.log(member[Project_Index]);
 			var Project = db.get('Project');
-			Project.remove({"Project_Name":member[Project_Index].Project_Name,"Project_Dday":member[Project_Index].Project_Dday}, function(err,note){
+			Project.remove({"Project_Name":member.Project_Name,"Project_Dday":member.Project_Dday}, function(err,note){
 				if( note == null ) {
 					console.log('no');
 				} else {
 					console.log('프로젝트 삭제 성공');
-					Project_Member.remove({"Project_Id":member[Project_Index].Project_Id}, function (err, pro) {
+					Project_Member.remove({"Project_Id":member.Project_Id}, function (err, pro) {
 						if( pro == null ) {
 							console.log('no');
 						} else {
@@ -186,7 +252,8 @@ router.post('/findProjectId',function (req,res) {
 	console.log('아이디 주기');
 	var User_Email = req.session.User_Email;
         var User_Name = req.session.User_Name;
-	var Project_Index = req.body.Project_Index;
+	var Project_Id = req.body.Project_Id;
+	console.log(Project_Id);
         var db =req.db;
         var User = db.get('User');
         User.findOne({"User_Name":User_Name,"User_Email":User_Email}, function (err,data) {
@@ -194,17 +261,18 @@ router.post('/findProjectId',function (req,res) {
                 console.log('find error');
         } else {
         var Project_Member = db.get('Project_Member');
-        Project_Member.find({"User_Id":data._id} ,function (err,member) {
+        Project_Member.findOne({"Project_Id":ObjectID(Project_Id),"User_Id":data._id} ,function (err,member) {
                 if(member == null){
                         console.log('no member');
                 } else {
+			console.log(member);
 			console.log(' 프로젝트 아이디 선택');
-                        req.session.Project_Id = member[Project_Index].Project_Id;
-			req.session.Project_Name = member[Project_Index].Project_Name;
-			req.session.Project_Dday = member[Project_Index].Project_Dday;
+                        req.session.Project_Id = member.Project_Id;
+			req.session.Project_Name = member.Project_Name;
+			req.session.Project_Dday = member.Project_Dday;
 			req.session.User_Name = User_Name;
 			req.session.User_Email = User_Email;
-		//	console.log(req.session);
+			console.log(req.session);
 			res.send({Next:'Frame'});
 	//		res.redirect("index");
                 }
@@ -214,6 +282,7 @@ router.post('/findProjectId',function (req,res) {
         });
 });
 router.get('/Project_Create', function(req, res) {
+
     var db = req.db;
     var User_Email = req.session.User_Email;
     var User_Pass = req.session.User_Pass;
@@ -322,6 +391,7 @@ Point_Item_Table.insert({"Project_Id":data._id,"User_Id":member._id,"Project_Wor
 //image upload
 router.post('/upload',function (req, res)  {
 console.log(req.files);
+console.log(req.files.path);
   res.send( 'Success upload files' );
 });
 
@@ -339,7 +409,6 @@ router.post('/login', function(req, res) {
     var db = req.db;
     var userName = req.body.loginname;
     var userpassword = req.body.loginpassword;
-
 console.log('user name start !!!');
     // Set our collection
     var collection = db.get('User');

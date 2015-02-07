@@ -6,9 +6,9 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var session = require('express-session'),
 	RedisStore = require('connect-redis')(session);
+var app = express();
 var routes = require('./routes/index');
 var users = require('./routes/users');
-var app = express();
 //socket network
 var http = require('http').Server(app);
 var fs = require('fs');
@@ -25,6 +25,8 @@ var multer  = require('multer');
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
+//proxy server
+app.set('trust proxy', true);
 // uncomment after placing your favicon in /public
 //app.use(favicon(__dirname + '/public/favicon.ico'));
 app.use(logger('dev'));
@@ -32,6 +34,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 //app.use(cookieParser());
 //app.use(session({secret:"mango"}));
+var MemoryStore = session.MemoryStore,
+    sessionStore = new MemoryStore();
 app.use(cookieParser());
 app.use(session({
   key:'sid', // 세션키
@@ -48,11 +52,13 @@ app.use(session({
 //}));
 //file path setting
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(multer({ dest: './public/images/',rename: function(fieldname,filename){
+app.use(multer({ dest: './public/files/',rename: function(fieldname,filename){
   return filename;
 }}));
-
+var sss;
 app.use(function(req,res,next){
+ sss = req.session;
+//	console.log(sss);
   req.db = db;
   next();
 });
@@ -75,9 +81,11 @@ Sockets.prototype.get = function(id, callback) {
         callback(false,this.sockets[id]);
     }
 };
+
+
 // socket network setting
-console.log('connect?');
 io.on('connection', function(socket) {
+console.log('연결 되었습니다 !!!^^');
     var Project_Member = db.get('Project_Member');
     var Project_Message = db.get('Project_Message');
     var sockets = new Sockets();
@@ -86,23 +94,24 @@ io.on('connection', function(socket) {
     //socket.broadcast.emit('hi');
     // console.log('chat message start');
     var User_Name = '';
-   
-
    socket.on('join', function (data) {
+
         var objectId = new ObjectID(data.Project_Id);
         User_Name = data.User_Name;
         console.log('user join room');
+	console.log(data);
         console.log(data.Project_Id);
         Project_Member.update({"Project_Id": objectId, "Member":User_Name}, {$set: {"Access": 'true'}});
         // 접속 유저 정보 보이기
         socket.join(objectId);
         sockets.set('room', objectId);
-
+	console.log('******************');
+	console.log(objectId);
         sockets.get('room', function (err, room) {
             Project_Member.find({"Project_Id": objectId, "Access": 'true'}, function (err, member) {
                 //     console.log(data[0].Member);
 		console.log(' 룸에 들어 갔습니다');
-	//	console.log(member);
+		console.log(member);
                 io.sockets.in(room).emit('Connect_Member', member);
 	//	io.sockets.in(room).emit('abc',member);
 		console.log(' connect_Member로 보냇음');
@@ -150,7 +159,7 @@ io.on('connection', function(socket) {
                     conole.log('메시지 저장 에러');
                 }
                 else
-                {
+                {	
                     console.log('메시지저장완료');
                 }
             });

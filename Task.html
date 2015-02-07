@@ -61,10 +61,10 @@
             box-shadow: 3px 3px 5px #999;
             cursor: pointer;
          }
-      </style>
 
+      </style>
       <script>
-         $(document).ready(function() {
+  $(document).ready(function() {
             //--------------------이미 생성된 메모 드래그--------------------------
             $appArea = $('body');
             $('card').each(function() {
@@ -75,69 +75,60 @@
             $('.card').draggable({
                grid : [205, 155]
             });
-            /*
-            $('.new').on('click', function() {
-            card.add($(this));
-            });
-            function add($self) {
-            $('card').append($('<div class=\'card ') + '\'><div class=\'card-content\'> Pellentesque habitant</div></div>');
-            $('card').draggable({
-            grid : [205, 155]
-            });
-            }*/
 
             //모달로 메모를 입력받는 부분----------------------------------------
-
-            $('#save_btn').click(function() {
-               new_card = new Array();
-               var name = document.getElementById("task_name").value;
-               var duedate = document.getElementById("task_duedate").value;
-               var handler = document.getElementById("task_handler").value;
-               var content = document.getElementById("task_content").value;
-               alert(name + "\n" + duedate + "\n" + handler + "\n" + content);
-
-               new_card.push({
-                  'name' : name,
-                  'duedate' : duedate,
-                  'handler' : handler,
-                  'content' : content
-               });
-
-               var text = "";
-               $.each(new_card, function(index, item) {
-                  text += "<div class ='card'>";
-                  text += "<div class='card-content'>";
-                  text += "할 일 이름 : " + item.name;
-                  text += "<br>마감일 : " + item.duedate;
-                  text += "<br>담당자 : " + item.handler;
-                  text += "<br>내용 : " + item.content;
-                  text += "</div></div>";
-               });
-               //item = '<div class=\'card ' + '\'> <div class=\'card-content\'>' + text + '</div> </div>';
-               alert(text);
-               /*
-                $('.card') = $item;
-                alert('.card');
-                $appArea.add(item);
-
-                $('new_card').draggable({
-                grid : [205, 155]
-                });
-                */
-               $('body').append(text);
-
-               $('.card').draggable({
-                  grid : [205, 155]
-               });
-               //text.empty();
-            });
+//Task Server receive
+$.getJSON('/TaskAppend', function (data){
+ var Work_Name = new Array();
+   var Work_Dday = new Array();
+   var Work_Memo = new Array();
+   var Work_Finish = new Array();
+   var Work_Person = new Array();
+   var Work_Top = new Array();
+   var Work_Left = new Array(); 
+for(var i =0 ; i < data.length ; i ++){
+    Work_Name[i] = data.Work_Name[i];	
+    Work_Dday[i] = data.Work_Dday[i];
+    Work_Memo[i] = data.Work_Memo[i];
+    Work_Finish[i] = data.Work_Finish[i];
+    Work_Person[i] = data.Work_Person[i].User_Name;
+    Work_Top[i] = data.Work_Top[i];
+    Work_Left[i] = data.Work_Left[i];
+}
+   var new_card = new Array();
+   new_card.push({
+      'name' : Work_Name,
+      'dday' : Work_Dday,
+      'member' : Work_Person,
+      'memo' : Work_Memo,
+      'x' : Work_Top,
+      'y' : Work_Left
+   });
+   var text = "";
+   $.each(new_card, function(index, item) {
+      text += "<div class ='card' style='top: "+item.x+"; left: "+item.y+";'>";
+      text += "<div class='card-content'>";
+      text += "할 일 이름 : " + item.name;
+      text += "<br>마감일 : " + item.dday;
+      text += "<br>담당자 : " + item.member;
+      text += "<br>내용 : " + item.memo;
+      text += "</div></div>";
+   });
+   $('body').append(text);
+   $('.card').draggable({
+      grid : [205, 155]
+   });
+   $('.card').click(function() {
+      $('#taskModal').modal(options);
+   });
+});
          });
-      </script>
+</script>
    </head>
 
    <body>
 
-      <div class="new">
+      <div class="new" onclick="alert("taskmodal");">
          <a data-toggle="modal" href="#myModal" data-role="add">new</a>
       </div>
       <div class="card green ui-draggable" style="top: 40px; left: 30px;">
@@ -151,7 +142,7 @@
          </div>
       </div>
 
-      <!--------------------------modal--------------------------->
+     
       <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
          <div class="modal-dialog">
             <div class="modal-content">
@@ -163,27 +154,44 @@
                </div>
                <div class="modal-body">
                   <div id="memo_form">
+         <form id="formAddUser" name="register" method="post" action="/TaskAdd">
                      업무
-                     <input type="text" id="task_name">
+                     <input type="text" name="Task_Name">
                      <br>
                      마감일
-                     <input type="date" id="task_duedate">
+                     <input type="date" name="Task_Dday">
                      <br>
                      참여자
-                     <input type="text" id="task_handler">
+                     <input type="text" name="Task_Member">
                      <br>
                      메모
-                     <input type="text" id="task_content">
+                     <input type="text" name="Task_Memo">
                      <br>
+                     <input type="submit" id="save_btn" class="btn btn-primary" >
+		</form>
                   </div>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <!-- task modal -->
+      <div class="modal fade" id="Task_Modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+         <div class="modal-dialog">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                     &times;
+                  </button>
+                  <h4 class="modal-title">할 일</h4>
+               </div>
+               <div class="modal-body">
+                  <table id="show"></table>
                </div>
                <div>
                   <div class="modal-footer">
-                     <button type="button" class="btn btn-default" data-dismiss="modal">
-                        닫기
-                     </button>
                      <button type="button" id="save_btn" class="btn btn-primary" data-dismiss="modal">
-                        저장
+                        수정
                      </button>
                   </div>
                </div>

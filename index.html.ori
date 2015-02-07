@@ -15,8 +15,7 @@
       <meta name="author" content="PC-164">
 
       <meta name="viewport" content="width=device-width; initial-scale=1.0">
-	<script src="/socket.io/socket.io.js"></script>
-                <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+
       <!-- Replace favicon.ico & apple-touch-icon.png in the root of your domain and delete these references -->
       <link rel="shortcut icon" href="/favicon.ico">
       <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -51,6 +50,7 @@
          }
       </style>
    </head>
+
    <body>
       <div>
          <header>
@@ -60,9 +60,8 @@
          <form id="formLogin" name="login" method="post" action="/login">
             <input type="text" id="User_Email" name="loginname" placeholder="계정"><br>
             <input type="password" id="User_Pass" name="loginpassword" placeholder="비밀번호"><br>
-            <input type="submit" id="login_btn" onclick="abc()" value="로그인">
+            <input type="submit" id="login_btn" value="로그인">
          </form>
-
          <form id="formAddUser" name="register" method="post" action="/register">
             <input id="inputUserEmail" type="text" placeholder="useremail" name="useremail"><br>
             <input id="inputUserName" type="text" placeholder="username" name="username"><br>
