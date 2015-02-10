@@ -12,12 +12,6 @@ $.getJSON('/TaskAppend', function(data) {
                var Work_Finish = new Array();
                var Work_List = new Array();
 	       var Work_Id = new Array();
-//	alert(count);
-//	alert(temp[0].Work_Name);
-//	alert(temp[0].Work_Person.User_Name);
-//	alert(temp[0].Work_Dday);
-//	alert(temp[0].Work_Memo);
-//	alert(temp[0].Work_Top);
 	for(var i =0;i<count;i++){
                      Work_List.push({
                         'Id' : temp[i]._id,
@@ -94,37 +88,50 @@ $.ajax({
 	'y' : y
 	},
 	success : function (result){
-var Work_List = [];
-var dataform = JSON.stringify(result);
-        var temp = JSON.parse(dataform);
-                     Work_List.push({
-                        'Id' : temp._id,
-                        'Name' : temp.Work_Name,
-                        'Dday' : temp.Work_Dday,
-                        'Memo' : temp.Work_Memo,
-                        'Person' : temp.Work_Person.User_Name,
-                        'Top' : temp.Work_Top,
-                        'Left' : temp.Work_Left,
-                        'Finish' : temp.Work_Finish
-                     });
-        var text = "";
-            $.each(Work_List, function(index, item) {
-              // text += "<div class ='card' id='" + item.Id + "' style='top:"+item.Top+"; left:"+item.Left+";'>";
-              // text += "<div class='card-content'>";
-               text += "할 일 이름 : " + item.Name;
-               text += "<br>마감일 : " + item.Dday;
-               text += "<br>담당자 : " + item.Person;
-               text += "<br>내용 : " + item.Memo;
-             // text += "</div></div>";
-            });
-
-                  $('#taskModal').modal('show');
-                  var box = document.getElementById('bb');
-                  box.innerHTML = text;
+		//move save 뎀
 	}
 });
- });
 
+$(document).on("dblclick",".card",function(){
+$.ajax({
+  	url: '/Update_TaskData',
+  	dataType : 'json',
+  	type :'POST',
+  	data :  {
+     'Work_Id' : this.id,
+     'x' : x,
+     'y' : y
+   },
+   success : function (result){
+      var Work_List = [];
+      var dataform = JSON.stringify(result);
+      var temp = JSON.parse(dataform);
+      Work_List.push({
+        'Id' : temp._id,
+        'Name' : temp.Work_Name,
+        'Dday' : temp.Work_Dday,
+        'Memo' : temp.Work_Memo,
+        'Person' : temp.Work_Person.User_Name,
+        'Top' : temp.Work_Top,
+        'Left' : temp.Work_Left,
+        'Finish' : temp.Work_Finish
+      });
+      var text = "";
+      
+      $.each(Work_List, function(index, item) {
+       text += "할 일 이름 : " + item.Name;
+       text += "<br>마감일 : " + item.Dday;
+       text += "<br>담당자 : " + item.Person;
+       text += "<br>내용 : " + item.Memo;
+     });
+
+      $('#taskModal').modal('show');
+      var box = document.getElementById('bb');
+      box.innerHTML = text;
+    }
+  });
+});
+});
 //$(document).on("mouseup",".card",function(){
 //	alert('aaa');
 

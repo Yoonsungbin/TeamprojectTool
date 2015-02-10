@@ -166,35 +166,43 @@ router.get('/TaskAppend', function(req, res) {
 //});
 
 
-/*Task get data */
+/*Task move save */
    router.post('/Get_TaskData',function(req,res){
-	console.log('데이터가져오는 업무');
+	console.log('데이터저장 ');
     var Work_Id = req.body.Work_Id;
     var x = req.body.x;
     var y = req.body.y;
     var db = req.db;
     var Project_Work = db.get('Project_Work');
-    var Work_Comment = db.get('Work_Comment');
 Project_Work.update({"_id":ObjectID(Work_Id)},{$set:{"Work_Top":y+'px',"Work_Left":x+'px'}});
-    Project_Work.findOne({"_id":ObjectID(Work_Id)},function(err,data){
-      if(data == null){
-		console.log('no id');
-      } else {
-         console.log(data);
-         Work_Comment.find({"Project_Work_Id":ObjectID(Work_Id)},function(err,com){
-         if(com == null){
-
-         } else {
-		console.log('다빈이사고침');
-            console.log(com);
-		res.send(data);
-         }
-         });
-      }
-    });
    });
 
+/*dbclick Task Update */
+ router.post('/Update_TaskData',function(req,res){
+  console.log('더블클릭햇을때 데이터 업로드');
+  var Work_Id = req.body.Work_Id;
+  var x = req.body.x;
+  var y = req.body.y;
+  var db = req.db;
+  var Project_Work = db.get('Project_Work');
+  var Work_Comment = db.get('Work_Comment');
+  Project_Work.update({"_id":ObjectID(Work_Id)},{$set:{"Work_Top":y+'px',"Work_Left":x+'px'}});
+  Project_Work.findOne({"_id":ObjectID(Work_Id)},function(err,data){
+    if(data == null){
+      console.log('no id');
+    } else {
+     console.log(data);
+     Work_Comment.find({"Project_Work_Id":ObjectID(Work_Id)},function(err,com){
+       if(com == null){
 
+       } else {
+        console.log(com);
+        res.send(data);
+      }
+    });
+   }
+ });
+});
 
 /* Lavel */
  router.get('/LavelAppend',function(req,res){
