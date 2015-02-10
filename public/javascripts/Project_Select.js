@@ -8,7 +8,7 @@
  var User_Email;
 
 
-$.getJSON('/Project_Create', function(data) {
+$.getJSON('/ProjectAppend', function(data) {
    count = data.length;
    User_Name = data.User_Name;
    User_Email = data.User_Email;
@@ -52,7 +52,6 @@ function prepare() {
       // 프로젝트 추가 이미지
       text += "<div class='prj'><a data-toggle='modal' href='#myModal' data-role='add'>";
       text += "<img id='prj_add' src='../images/prj_add.png'></a></div>";
-//	$('#wrap').append(text);
       var box = document.getElementById('wrap');
       box.innerHTML = text;
       // prj_list에 text를 덧붙입니다.
@@ -73,29 +72,11 @@ function prepare() {
       title.css('font-size', '24px');
       title.css('font-weigth', 'normal');
    });
-
-
-// 프로젝트 삭제 버튼 클릭 시
-$(document).on("click", ".del", function() {
-//	alert($(this).parents('.prj').attr('id'));
-   $.ajax({
-      url : '/projectout',
-      dataType : 'json',
-      type : 'POST',
-      data : {
-         'Project_Id' : $(this).parents('.prj').attr('id'),
-      },
-      success : function(result) {
-         window.location.reload();
-      }
-   });
-});
-
+}
 // 프로젝트 선택 시
 $(document).on("click", ".title", function() {
-         alert($(this).parents('.prj').attr('id'));
    $.ajax({
-      url : '/findProjectId',
+      url : '/Select_Project',
       dataType : 'json',
       type : 'POST',
       data : {
@@ -108,4 +89,3 @@ $(document).on("click", ".title", function() {
    });
 });
 
-}

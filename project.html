@@ -16,7 +16,6 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <script src="http://code.jquery.com/jquery-latest.js"></script>
     <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-    <script src="../javascripts/connect.js"></script>
     <script src="../javascripts/Project_Select.js"></script>
     <link rel="stylesheet" type="text/css" href="../stylesheets/Project_Select.css">
     <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
@@ -40,7 +39,7 @@
             <h4 class="modal-title">프로젝트 추가 하기</h4>
           </div>
           <div class="modal-body">
-            <form id="formProjectAdd" name="Project_Add" method="post" action="/projectadd">
+            <form id="formProjectAdd" name="Project_Add" method="post" action="/ProjectAdd">
               <input type="text" name="Project_Name" placeholder="프로젝트 이름"><br>
               <input type="date" name="Project_Dday" placeholder="마감일 "><br>
               <input type="text" name="Project_Memo" placeholder="설명"><br>
