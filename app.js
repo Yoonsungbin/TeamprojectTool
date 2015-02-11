@@ -97,16 +97,18 @@ console.log('조인됫나');
         var objectId = new ObjectID(data.Project_Id);
         User_Name = data.User_Name;
 		console.log(User_Name);
-        Project_Member.update({"Project_Id": objectId, "Member_Name":User_Name},{$set :{ "Member_Access": 'true'}});
+        Project_Member.update({"Project_Id": objectId, "Member.Member_Name":User_Name},{$set :{ "Member.$.Member_Access": 'true'}});
         // 접속 유저 정보 보이기
         socket.join(objectId);
         sockets.set('room', objectId);
         sockets.get('room', function (err, room) {
 		console.log(room);
-            Project_Member.find({"Project_Id":objectId,"Member_Access":'true'}, function (err, member) {
+            Project_Member.col.aggregate({$match:{"Project_Id":objectId}},{$unwind:'$Member'},{$match:{"Member.Member_Access":'true'}},{$group:{"_id":'$_id',"Access_Member":{$push:'$Member.Member_Name'}}}, function (err, member) {
+		console.log('접속해있는사람명단');
+		console.log(member);
 	                io.sockets.in(room).emit('Connect_Member', member);
             });
-	  Project_Member.find( { "Project_Id" : objectId , "Member_Access":'false'},function(err,member){
+            Project_Member.col.aggregate({$match:{"Project_Id":objectId}},{$unwind:'$Member'},{$match:{"Member.Member_Access":'false'}},{$group:{"_id":'$_id',"Access_Member":{$push:'$Member.Member_Name'}}}, function (err, member) {
 	                io.sockets.in(room).emit('Disconnect_Member', member);
             });
 	Project_Message.find({"Project_Id": objectId}, function(err, data){
@@ -130,7 +132,7 @@ console.log('조인됫나');
         });
     });
     socket.on('getmessage', function (msg) {
-        sockets.get('room', function (err, room) {
+        sockets.get('roo', function (err, room) {
 	       Project_Message.insert({"Project_Id":room, "Chat": {"Member":msg.User_Name, "Message":msg.message,"Time":msg.Time}}, function(err, data){
                 if(err){
                     conole.log('메시지 저장 에러');
@@ -148,14 +150,14 @@ console.log('조인됫나');
 		console.log('disconnect 유저입니다');
         sockets.get('room', function (err, room) {
 		console.log('access값 false완료 ');
-           Project_Member.update({"Project_Id": room, "Member_Name":User_Name},{$set:{ "Member_Access": 'false'}});
-            Project_Member.find({"Project_Id": room, "Member_Access": 'true'}, function (err, member) {
+           Project_Member.update({"Project_Id": room, "Member.Member_Name":User_Name},{$set:{ "Member.$.Member_Access": 'false'}});
+            Project_Member.col.aggregate({$match:{"Project_Id":room}},{$unwind:'$Member'},{$match:{"Member.Member_Access":'true'}},{$group:{"_id":'$_id',"Access_Member":{$push:'$Member.Member_Name'}}}, function (err, member) {
 //		console.log(member);
                 io.sockets.in(room).emit('Connect_Member', member);
                 console.log('Connect_Member멤버보내기완료');
             });
 
-            Project_Member.find({"Project_Id": room, "Member_Access": 'false'}, function (err, member) {
+            Project_Member.col.aggregate({$match:{"Project_Id":room}},{$unwind:'$Member'},{$match:{"Member.Member_Access":'false'}},{$group:{"_id":'$_id',"Access_Member":{$push:'$Member.Member_Name'}}}, function (err, member) {
                 io.sockets.in(room).emit('Disconnect_Member', member);
                 console.log('Disconnect_Member멤버보내기완료');
             });

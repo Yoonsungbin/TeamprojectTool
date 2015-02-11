@@ -88,4 +88,18 @@ $(document).on("click", ".title", function() {
       }
    });
 });
+$(document).on("click", ".del", function() {
+   $.ajax({
+      url : '/ProjectDelete',
+      dataType : 'json',
+      type : 'POST',
+      data : {
+         'Project_Id' : $(this).parents('.prj').attr('id'),
+         //프로젝트 내용
+      },
+      success : function(result) {
+         window.location = result.Next;
+      }
+   });
+});
 

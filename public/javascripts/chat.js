@@ -19,13 +19,15 @@
       socket.on('Connect_Member', function(data){                
         var Connect_List = [];
         var Connect_Dataform = JSON.stringify(data);
+//	alert(Connect_Dataform);
         var Connect_User = '';               
         var Connect = JSON.parse(Connect_Dataform);
-        var count = Connect.length;
-	
-
+        var count = Connect[0].Access_Member.length;
+	//alert(count);
+//	alert(Connect);
+//	alert(Connect[0].Access_Member[0]);
         for( var i =0;i<count;i++){
-          Connect_List.push({'user' : Connect[i].Member_Name});
+         Connect_List.push({'user' : Connect[0].Access_Member[i]});
         }                     
         $.each(Connect_List, function(index, item){
           Connect_User += "<li>"  +item.user + "<br></li>"; 
@@ -41,10 +43,10 @@
     var DisConnect_Dataform = JSON.stringify(data);
     var DisConnect_User = '';
     var DisConnect = JSON.parse(DisConnect_Dataform);
-    var DisConnect_Count = DisConnect.length;
+    var DisConnect_Count = DisConnect[0].Access_Member.length;
     var DisConnect_List = [];
     for( var i =0;i<DisConnect_Count;i++){           
-	      DisConnect_List.push({'user' : DisConnect[i].Member_Name});
+	      DisConnect_List.push({'user' : DisConnect[0].Access_Member[i]});
 	}
     
 

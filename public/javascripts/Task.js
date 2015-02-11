@@ -27,7 +27,7 @@ $.getJSON('/TaskAppend', function(data) {
 	var text = "";
 
             $.each(Work_List, function(index, item) {
-               text += "<div class ='card' id='" + item.Id + "' style='top:"+item.Top+"; left:"+item.Left+";'>";
+               text += "<div class ='card' id='" + item.Id + "'  style='top:"+item.Top+"; left:"+item.Left+";'>";
                text += "<div class='card-content'>";
                text += "할 일 이름 : " + item.Name;
                text += "<br>마감일 : " + item.Dday;
@@ -44,22 +44,22 @@ $.getJSON('/TaskAppend', function(data) {
 ///////////////////////////////////////////
 /////////////////////////라벨
 
-$.getJSON('/LavelAppend',function(data){
+$.getJSON('/LabelAppend',function(data){
    var dataform = JSON.stringify(data);
    var temp = JSON.parse(dataform);
-   var Lavel_List = new Array();
+   var Label_List = new Array();
 //   alert(temp);
    var count = data.length;
       for(var i =0; i < count; i++){
-         Lavel_List.push({
+         Label_List.push({
             'Id' : temp[i]._id,
-            'Name' : temp[i].Lavel_Name,
-            'Top' : temp[i].Lavel_Top,
-            'Left' : temp[i].Lavel_Left
+            'Name' : temp[i].Label_Name,
+            'Top' : temp[i].Label_Top,
+            'Left' : temp[i].Label_Left
          });
       }
       var ltext = "";
-               $.each(Lavel_List, function(index, item) {
+               $.each(Label_List, function(index, item) {
                   ltext += "<div class ='label' id ='" +item.Id +"' style ='top :"+item.Top+"; left:"+item.Left+";'>";
                   ltext += item.Name;
                   ltext += "</div>";
@@ -72,70 +72,141 @@ $.getJSON('/LavelAppend',function(data){
                });
    });
 
-
-
-$(document).on("click",".card",function(){
-//   $('.card').click(function() {
-		  var x = event.pageX - event.offsetX;
-		  var y = event.pageY - event.offsetY;
+////////////////////카드
+var DELAY = 500,
+    clicks = 0,
+    timer = null;
+    $(document).on("mouseup",".card",
+    function(e){
+        clicks++;  //count clicks
+        if(clicks == 1) {
+     var  x = event.pageX - event.offsetX;
+     var  y = event.pageY - event.offsetY; 
+     var Id = this.id;	
+            timer = setTimeout(function() {
 $.ajax({
-	url: '/Get_TaskData',
-	dataType : 'json',
-	type :'POST',
-	data :  {
-	'Work_Id' : this.id,
-	'x' : x,
-	'y' : y
-	},
-	success : function (result){
-		//move save 뎀
-	}
+        url: '/Get_TaskData',
+        dataType : 'json',
+        type :'POST',
+        data :  {
+        'Work_Id' : Id,
+        'x' : x,
+        'y' : y
+        },
+        success : function (result){
+        }
 });
-
-$(document).on("dblclick",".card",function(){
+                clicks = 0;  //after action performed, reset counter
+            }, DELAY);
+        } else {
+            clearTimeout(timer);  //prevent single-click action
+	Id=this.id;
 $.ajax({
-  	url: '/Update_TaskData',
-  	dataType : 'json',
-  	type :'POST',
-  	data :  {
-     'Work_Id' : this.id,
-     'x' : x,
-     'y' : y
+        url: '/Update_TaskData',
+        dataType : 'json',
+        type :'POST',
+        data :  {
+     'Work_Id' : Id
    },
    success : function (result){
-      var Work_List = [];
-      var dataform = JSON.stringify(result);
-      var temp = JSON.parse(dataform);
-      Work_List.push({
-        'Id' : temp._id,
-        'Name' : temp.Work_Name,
-        'Dday' : temp.Work_Dday,
-        'Memo' : temp.Work_Memo,
-        'Person' : temp.Work_Person.User_Name,
-        'Top' : temp.Work_Top,
-        'Left' : temp.Work_Left,
-        'Finish' : temp.Work_Finish
+      var Work_List1 = [];
+      var dataform1 = JSON.stringify(result);
+      var temp1 = JSON.parse(dataform1);
+      Work_List1.push({
+        'Id' : temp1._id,
+        'Name' : temp1.Work_Name,
+        'Dday' : temp1.Work_Dday,
+        'Memo' : temp1.Work_Memo,
+        'Person' : temp1.Work_Person.User_Name,
+        'Top' : temp1.Work_Top,
+        'Left' : temp1.Work_Left,
+        'Finish' : temp1.Work_Finish
       });
-      var text = "";
-      
-      $.each(Work_List, function(index, item) {
-       text += "할 일 이름 : " + item.Name;
-       text += "<br>마감일 : " + item.Dday;
-       text += "<br>담당자 : " + item.Person;
-       text += "<br>내용 : " + item.Memo;
+      var text1 = "";
+      $.each(Work_List1, function(index, item) {
+       text1 += "할 일 이름 : " + item.Name;
+       text1 += "<br>마감일 : " + item.Dday;
+       text1 += "<br>담당자 : " + item.Person;
+       text1 += "<br>내용 : " + item.Memo;
      });
-
       $('#taskModal').modal('show');
       var box = document.getElementById('bb');
-      box.innerHTML = text;
+      box.innerHTML = text1;
     }
   });
+            clicks = 0;  //after action performed, reset counter
+        }
+
+    })
+    .on("dblclick",".card", function(e){
+        e.preventDefault();  //cancel system double-click event
+    });
+
+
+
+////////////////////////////label event //////////////////////////
+
+var lDELAY = 500,
+    lclicks = 0,
+    ltimer = null;
+var lId;
+$(document).on("mousedown",".label",function(){
+      lId = this.id;
 });
+    $(document).on("mouseup",".label",
+    function(ea){
+        lclicks++;  //count lclicks
+        if(lclicks == 1) {
+     var  lx = event.pageX - event.offsetX;
+     var  ly = event.pageY - event.offsetY;
+            ltimer = setTimeout(function() {
+$.ajax({
+        url: '/Get_LabelData',
+        dataType : 'json',
+        type :'POST',
+        data :  {
+        'Work_Id' : lId,
+        'x' : lx,
+        'y' : ly
+        },
+        success : function (result){
+        }
 });
-//$(document).on("mouseup",".card",function(){
-//	alert('aaa');
+                lclicks = 0;  //after action performed, reset counter
+            }, lDELAY);
+        } else {
+            clearTimeout(ltimer);  //prevent single-lclick action
+$.ajax({
+        url: '/Update_LabelData',
+        dataType : 'json',
+        type :'POST',
+        data :  {
+     'Work_Id' : lId
+   },
+   success : function (result){
+    var Label_List = [];
+      var dataform = JSON.stringify(result);
+      var temp = JSON.parse(dataform);
+      Label_List.push({
+        'Id' : temp._id,
+        'Name' : temp.Label_Name,
+      });
+      var ltext = "";
 
-//});
+      $.each(Label_List, function(index, item) {
+ //     ltext += "<div class ='label' id ='" +item.Id +"' style ='top :"+item.Top+"; left:"+item.Left+";'>";
+                  ltext += item.Name;
+   //               ltext += "</div>";
+     });
+$('#labelModal').modal('show');
+      var lbox = document.getElementById('textarea');
+      lbox.innerHTML = ltext;
+    }
+  });
+            lclicks = 0;  //after action performed, reset counter
+        }
 
-
-        
+    })
+    .on("dblclick",".label", function(ea){
+        ea.preventDefault();  //cancel system double-lclick event
+    });
